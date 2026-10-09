@@ -5,7 +5,7 @@
   const reducir = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const VEL = reducir ? 0.05 : 0.18; // velocidad de las ondas
 
-  let W, H, dpr;
+  let W, H, dpr, contrasteOndas = 1;
   const ondas = [
     { y: 0.74, a: 0.05, f1: 1.1, f2: 2.3, p: 0.0, alpha: 0.07 },
     { y: 0.68, a: 0.07, f1: 0.8, f2: 1.7, p: 2.4, alpha: 0.05 },
@@ -13,8 +13,11 @@
 
   function ajustar() {
     dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-    const ancho = Math.round(canvas.clientWidth * dpr);
-    const alto = Math.round(canvas.clientHeight * dpr);
+    const anchoCss = canvas.clientWidth || window.innerWidth;
+    const altoCss = canvas.clientHeight || window.innerHeight;
+    const ancho = Math.round(anchoCss * dpr);
+    const alto = Math.round(altoCss * dpr);
+    contrasteOndas = window.matchMedia("(max-width: 700px)").matches ? 1.8 : 1;
     if (canvas.width !== ancho) canvas.width = ancho;
     if (canvas.height !== alto) canvas.height = alto;
     W = canvas.width;
@@ -40,6 +43,7 @@
     ctx.fillRect(0, 0, W, H);
 
     for (const o of ondas) {
+      const alpha = o.alpha * contrasteOndas;
       ctx.beginPath();
       for (let x = 0; x <= W; x += 12 * dpr) {
         const u = x / W;
@@ -53,12 +57,12 @@
       ctx.closePath();
 
       const rel = ctx.createLinearGradient(0, H * (o.y - o.a), 0, H);
-      rel.addColorStop(0, `rgba(200, 200, 200, ${o.alpha})`);
+      rel.addColorStop(0, `rgba(200, 200, 200, ${alpha})`);
       rel.addColorStop(1, "rgba(200, 200, 200, 0)");
       ctx.fillStyle = rel;
       ctx.fill();
 
-      ctx.strokeStyle = `rgba(220, 220, 220, ${o.alpha * 1.6})`;
+      ctx.strokeStyle = `rgba(220, 220, 220, ${alpha * 1.6})`;
       ctx.lineWidth = 1 * dpr;
       ctx.stroke();
     }
@@ -68,11 +72,6 @@
 
   addEventListener("resize", ajustar);
   window.visualViewport?.addEventListener("resize", ajustar);
-  ajustar();
-  requestAnimationFrame(dibujar);
-})();
-
-  addEventListener("resize", ajustar);
   ajustar();
   requestAnimationFrame(dibujar);
 })();
