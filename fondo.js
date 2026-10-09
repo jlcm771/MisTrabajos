@@ -18,7 +18,7 @@
   }
 
   function dibujar(ms) {
-    const t = (ms / 1000) * VEL;
+    const t = (ms / 500) * VEL;
 
     const g = ctx.createLinearGradient(0, 0, 0, H);
     g.addColorStop(0, "#000000");
