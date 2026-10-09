@@ -13,8 +13,12 @@
 
   function ajustar() {
     dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-    W = canvas.width = innerWidth * dpr;
-    H = canvas.height = innerHeight * dpr;
+    const ancho = Math.round(canvas.clientWidth * dpr);
+    const alto = Math.round(canvas.clientHeight * dpr);
+    if (canvas.width !== ancho) canvas.width = ancho;
+    if (canvas.height !== alto) canvas.height = alto;
+    W = canvas.width;
+    H = canvas.height;
   }
 
   function dibujar(ms) {
@@ -61,6 +65,12 @@
 
     requestAnimationFrame(dibujar);
   }
+
+  addEventListener("resize", ajustar);
+  window.visualViewport?.addEventListener("resize", ajustar);
+  ajustar();
+  requestAnimationFrame(dibujar);
+})();
 
   addEventListener("resize", ajustar);
   ajustar();
