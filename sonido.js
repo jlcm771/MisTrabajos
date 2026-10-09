@@ -5,10 +5,9 @@
 (() => {
   // Volúmenes: de 0 (mudo) a 1 (máximo). Cámbialos aquí.
   const VOLUMEN = {
-    select: 0.5,
+    select: 0.3,
     clicAmpliar: 0.6,
-    clicDisminuir: 0.4, // un poquito más bajo al salir de la imagen
-    intro: 0.4,
+    clicDisminuir: 0.3, // un poquito más bajo al salir de la imagen
   };
 
   const boton = document.getElementById("sonido");
