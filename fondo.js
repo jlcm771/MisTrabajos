@@ -17,7 +17,7 @@
     const altoCss = canvas.clientHeight || window.innerHeight;
     const ancho = Math.round(anchoCss * dpr);
     const alto = Math.round(altoCss * dpr);
-    contrasteOndas = window.matchMedia("(max-width: 750px)").matches ? 1.8 : 1;
+    contrasteOndas = window.matchMedia("(max-width: 650px)").matches ? 1.8 : 1;
     if (canvas.width !== ancho) canvas.width = ancho;
     if (canvas.height !== alto) canvas.height = alto;
     W = canvas.width;
