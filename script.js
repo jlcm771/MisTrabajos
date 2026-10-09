@@ -38,7 +38,8 @@ let puntero = null;        // posición del mouse respecto al centro de la rulet
 let ultimo = performance.now();
 const hover = items.map(() => 0); // 0..1 por imagen, suaviza el crecimiento
 
-let W, H, R, cy, tam, tamDisp, grande, dx, dyArriba, dyAbajo;
+let W, H, R, cy, tam, tamDisp, dx, dyArriba, dyAbajo;
+const proporcion = items.map(() => 1); // ancho / alto real de cada imagen (1 = cuadrada)
 let sobreAnterior = -1;
 
 function medir() {
@@ -58,13 +59,21 @@ function medir() {
   wheel.style.top = cy + "px";
 
   tamDisp = tam * 0.6;                            // tamaño al dispersarse
-  grande = Math.min(W * 0.88, H * 0.62, 680);     // tamaño al expandirse
   dx = W / 2 - tamDisp / 2 - 12;                  // hasta dónde se dispersan
   dyArriba = cy - tamDisp / 2 - 12;
   dyAbajo = H - cy - tamDisp / 2 - 12;
 
   // El fondo de partículas se coloca en el centro de la ruleta
   window.__esfera = { x: W / 2, y: cy, r: Math.max(40, R * 0.7) };
+}
+
+// Caja expandida: respeta la proporción real de la imagen, sin recortarla
+function cajaGrande(r) {
+  const MARCO = 8;                              // borde + margen del marco de cristal
+  const maxW = Math.min(W * 0.9, 1000) - MARCO;
+  const maxH = Math.min(H * 0.62, 700) - MARCO;
+  const ancho = Math.min(maxW, maxH * r);
+  return [ancho + MARCO, ancho / r + MARCO];
 }
 
 /* ---------- Utilidades ---------- */
@@ -118,25 +127,30 @@ function cuadro(ahora) {
     const a = anguloDe(i);
     const ox = R * Math.cos(a);
     const oy = R * Math.sin(a);
-    let x, y, s, o;
+    let x, y, w, h, o;
 
     if (item === seleccionado) {
       x = ox * (1 - e);
       y = oy * (1 - e);
-      s = tam + (grande - tam) * e;
+      const [gw, gh] = cajaGrande(proporcion[i]);
+      w = tam + (gw - tam) * e;
+      h = tam + (gh - tam) * e;
       o = 1;
     } else {
       const tx = Math.cos(a) * dx;
       const ty = Math.sin(a) * (Math.sin(a) > 0 ? dyAbajo : dyArriba);
       x = ox + (tx - ox) * e;
       y = oy + (ty - oy) * e;
-      s = tam + (tamDisp - tam) * e;
+      w = h = tam + (tamDisp - tam) * e;
       o = 1 - 0.55 * e;
     }
-    s *= 1 + AUMENTO * hover[i];
+    const crece = 1 + AUMENTO * hover[i];
+    w *= crece;
+    h *= crece;
 
-    item.style.width = item.style.height = s + "px";
-    item.style.transform = `translate3d(${x - s / 2}px, ${y - s / 2}px, 0)`;
+    item.style.width = w + "px";
+    item.style.height = h + "px";
+    item.style.transform = `translate3d(${x - w / 2}px, ${y - h / 2}px, 0)`;
     item.style.opacity = o;
 
     // El hilo va del centro a la imagen dispersada
@@ -176,7 +190,7 @@ function cerrar() {
 }
 
 /* ---------- Eventos ---------- */
-items.forEach((item) => {
+items.forEach((item, i) => {
   item.addEventListener("click", () => abrir(item));
 
   // Si la imagen aún no existe, se muestra el nombre del proyecto
@@ -185,8 +199,15 @@ items.forEach((item) => {
     img.remove();
     item.classList.add("sin-imagen");
   };
+  const leerProporcion = () => {
+    if (img.naturalWidth > 0 && img.naturalHeight > 0) proporcion[i] = img.naturalWidth / img.naturalHeight;
+  };
   img.addEventListener("error", sinImagen);
-  if (img.complete && img.naturalWidth === 0) sinImagen();
+  img.addEventListener("load", leerProporcion);
+  if (img.complete) {
+    if (img.naturalWidth === 0) sinImagen();
+    else leerProporcion();
+  }
 });
 
 // Click fuera de la imagen abierta → se minimiza
