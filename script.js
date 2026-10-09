@@ -38,25 +38,8 @@ let puntero = null;        // posición del mouse respecto al centro de la rulet
 let ultimo = performance.now();
 const hover = items.map(() => 0); // 0..1 por imagen, suaviza el crecimiento
 
-let W, H, R, cy, tam, tamDisp, grandeAncho, grandeAlto, dx, dyArriba, dyAbajo;
+let W, H, R, cy, tam, tamDisp, grande, dx, dyArriba, dyAbajo;
 let sobreAnterior = -1;
-
-function medirImagenExpandida(item) {
-  const img = item.querySelector("img");
-  const maxAncho = Math.min(W * 0.88, 680) - 8;
-  const maxAlto = H * 0.62 - 8;
-
-  if (!img || !img.naturalWidth || !img.naturalHeight) {
-    const lado = Math.max(1, Math.min(maxAncho, maxAlto));
-    return { ancho: lado, alto: lado };
-  }
-
-  const escala = Math.min(1, maxAncho / img.naturalWidth, maxAlto / img.naturalHeight);
-  return {
-    ancho: img.naturalWidth * escala + 8,
-    alto: img.naturalHeight * escala + 8,
-  };
-}
 
 function medir() {
   W = stage.clientWidth;
@@ -75,10 +58,13 @@ function medir() {
   wheel.style.top = cy + "px";
 
   tamDisp = tam * 0.6;                            // tamaño al dispersarse
-  if (seleccionado) ({ ancho: grandeAncho, alto: grandeAlto } = medirImagenExpandida(seleccionado));
+  grande = Math.min(W * 0.88, H * 0.62, 680);     // tamaño al expandirse
   dx = W / 2 - tamDisp / 2 - 12;                  // hasta dónde se dispersan
   dyArriba = cy - tamDisp / 2 - 12;
   dyAbajo = H - cy - tamDisp / 2 - 12;
+
+  // El fondo de partículas se coloca en el centro de la ruleta
+  window.__esfera = { x: W / 2, y: cy, r: Math.max(40, R * 0.7) };
 }
 
 /* ---------- Utilidades ---------- */
@@ -123,6 +109,7 @@ function cuadro(ahora) {
   else if (p > objetivo) p = Math.max(objetivo, p - dt / DUR);
   const e = suave(p);
   stage.style.setProperty("--abre", e.toFixed(4));
+  window.__abre = e; // el fondo se atenúa cuando hay un proyecto abierto
 
   items.forEach((item, i) => {
     hover[i] += ((i === sobre ? 1 : 0) - hover[i]) * amortiguar(dt, 12);
@@ -131,29 +118,25 @@ function cuadro(ahora) {
     const a = anguloDe(i);
     const ox = R * Math.cos(a);
     const oy = R * Math.sin(a);
-    let x, y, ancho, alto, o;
+    let x, y, s, o;
 
     if (item === seleccionado) {
       x = ox * (1 - e);
       y = oy * (1 - e);
-      ancho = tam + (grandeAncho - tam) * e;
-      alto = tam + (grandeAlto - tam) * e;
+      s = tam + (grande - tam) * e;
       o = 1;
     } else {
       const tx = Math.cos(a) * dx;
       const ty = Math.sin(a) * (Math.sin(a) > 0 ? dyAbajo : dyArriba);
       x = ox + (tx - ox) * e;
       y = oy + (ty - oy) * e;
-      ancho = alto = tam + (tamDisp - tam) * e;
+      s = tam + (tamDisp - tam) * e;
       o = 1 - 0.55 * e;
     }
-    const factorHover = item === seleccionado ? 1 : 1 + AUMENTO * hover[i];
-    ancho *= factorHover;
-    alto *= factorHover;
+    s *= 1 + AUMENTO * hover[i];
 
-    item.style.width = ancho + "px";
-    item.style.height = alto + "px";
-    item.style.transform = `translate3d(${x - ancho / 2}px, ${y - alto / 2}px, 0)`;
+    item.style.width = item.style.height = s + "px";
+    item.style.transform = `translate3d(${x - s / 2}px, ${y - s / 2}px, 0)`;
     item.style.opacity = o;
 
     // El hilo va del centro a la imagen dispersada
@@ -178,7 +161,6 @@ function cuadro(ahora) {
 function abrir(item) {
   if (abierto || p > 0) return;
   seleccionado = item;
-  ({ ancho: grandeAncho, alto: grandeAlto } = medirImagenExpandida(item));
   item.classList.add("is-selected");
   caption.textContent = item.dataset.title;
   stage.classList.add("is-open");
