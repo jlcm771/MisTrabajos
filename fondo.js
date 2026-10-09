@@ -1,5 +1,6 @@
 /* Fondo: negro puro con una esfera de partículas que cambia de forma
    (esfera → anillos → círculo → reloj) y deja un borde de color en los puntos.
+   Alrededor hay puntos que orbitan y polvo de luz que flota por toda la pantalla.
    Se coloca sola en el centro de la ruleta: script.js le pasa la posición. */
 (() => {
   const canvas = document.getElementById("fondo");
@@ -12,11 +13,15 @@
   const GIRO = reducir ? 0.08 : 0.22;    // velocidad de giro
   const ABERRACION = 0.016;              // separación de colores en el borde (0 = sin color)
   const RETARDO = 0.4;                   // qué tan escalonado es el cambio de forma
+  const N_ORBITA = [70, 40];             // puntos que orbitan: [pantalla grande, celular]
+  const N_POLVO = [170, 90];             // polvo de luz: [pantalla grande, celular]
 
   let W, H, dpr, N;
   let cx = 0, cy = 0, Rs = 100;
   let puntero = null;
   let formas = [], retardo = null;
+  let orbitas = [], polvo = [];
+  let paraX = 0, paraY = 0; // desplazamiento suave según el mouse
   let actual = 0, siguiente = 1, cambiando = false, fase = 0;
   let rotY = 0, ultimo = 0, iniciado = false;
 
@@ -36,6 +41,7 @@
   const rojo = sprite(255, 70, 60);
   const verde = sprite(70, 255, 90);
   const azul = sprite(70, 110, 255);
+  const blanco = sprite(255, 255, 255);
 
   /* ---------- Las formas (posiciones de cada punto, radio 1) ---------- */
   function crearFormas(n) {
@@ -88,11 +94,31 @@
     dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     W = canvas.width = Math.floor(innerWidth * dpr);
     H = canvas.height = Math.floor(innerHeight * dpr);
-    const n = innerWidth > 900 ? 900 : 520; // menos puntos en celular
+    const grande = innerWidth > 900;
+    const n = grande ? 900 : 520; // menos puntos en celular
     if (n !== N) {
       N = n;
       formas = crearFormas(N);
       retardo = Float32Array.from({ length: N }, () => Math.random() * RETARDO);
+
+      // Puntos que giran alrededor de la esfera, cada uno en su propia órbita inclinada
+      orbitas = Array.from({ length: N_ORBITA[grande ? 0 : 1] }, () => ({
+        rho: 1.35 + Math.random() * 1.3,
+        incl: Math.random() * Math.PI,
+        yaw: Math.random() * Math.PI * 2,
+        fase: Math.random() * Math.PI * 2,
+        vel: (0.12 + Math.random() * 0.28) * (Math.random() < 0.5 ? -1 : 1),
+        tam: 2 + Math.random() * 3.5,
+      }));
+
+      // Polvo de luz repartido por toda la pantalla, con profundidad
+      polvo = Array.from({ length: N_POLVO[grande ? 0 : 1] }, () => ({
+        x: Math.random(),
+        y: Math.random(),
+        d: 0.25 + Math.random() * 0.75, // 1 = cerca, 0 = lejos
+        f: Math.random() * Math.PI * 2,
+        v: 0.004 + Math.random() * 0.012,
+      }));
     }
   }
 
@@ -198,6 +224,54 @@
       ctx.drawImage(azul, sx - ox - mitad, sy - oy - mitad, tam, tam);
     }
 
+    // Órbitas: puntos que giran alrededor de la esfera
+    for (const o of orbitas) {
+      const phi = o.fase + (o.vel / Math.sqrt(o.rho)) * t;
+      const rho = o.rho * (1 + 0.45 * abre); // al abrir un proyecto se alejan
+      const px = rho * Math.cos(phi);
+      const py0 = rho * Math.sin(phi);
+      const py = py0 * Math.cos(o.incl);
+      const pz = py0 * Math.sin(o.incl);
+      const qx = px * Math.cos(o.yaw) + pz * Math.sin(o.yaw);
+      const qz = -px * Math.sin(o.yaw) + pz * Math.cos(o.yaw);
+      const x1 = qx * cY + qz * sY;
+      const z1 = -qx * sY + qz * cY;
+      const y2 = py * cX - z1 * sX;
+      const zc = Math.max(-2, Math.min(2, py * sX + z1 * cX));
+      const prof = (zc + 2) / 4;
+      const s = 5 / (5 - zc);
+      const sx = cx + x1 * Rs * s;
+      const sy = cy + y2 * Rs * s;
+      const tam = o.tam * dpr * (0.7 + 0.6 * prof) * 3.2;
+      // Punto blanco con un borde de color pequeño (máx. 3 px) para que no se vea colorido
+      const dist = Math.hypot(sx - cx, sy - cy) || 1;
+      const mag = Math.min(dist * ABERRACION * 1.5, 3 * dpr);
+      const ox = ((sx - cx) / dist) * mag;
+      const oy = ((sy - cy) / dist) * mag;
+      const mitad = tam / 2;
+      const brillo = (0.25 + 0.6 * prof) * (1 - 0.5 * abre);
+      ctx.globalAlpha = brillo * 0.6;
+      ctx.drawImage(rojo, sx + ox - mitad, sy + oy - mitad, tam, tam);
+      ctx.drawImage(azul, sx - ox - mitad, sy - oy - mitad, tam, tam);
+      ctx.globalAlpha = brillo;
+      ctx.drawImage(blanco, sx - mitad, sy - mitad, tam, tam);
+    }
+
+    // Polvo de luz: sube despacio y se mueve un poco con el mouse
+    const kp = 1 - Math.exp(-dt * 3);
+    paraX += ((puntero ? puntero.x / W - 0.5 : 0) - paraX) * kp;
+    paraY += ((puntero ? puntero.y / H - 0.5 : 0) - paraY) * kp;
+    const lento = reducir ? 0.3 : 1;
+    for (const m of polvo) {
+      m.y -= m.v * m.d * dt * lento;
+      if (m.y < -0.02) { m.y = 1.02; m.x = Math.random(); }
+      const sx = (m.x + Math.sin(t * 0.2 + m.f) * 0.01) * W - paraX * 50 * dpr * m.d;
+      const sy = m.y * H - paraY * 50 * dpr * m.d;
+      const tam = (1 + 1.6 * m.d) * dpr * (0.8 + 0.2 * Math.sin(t * 1.5 + m.f)) * 3;
+      ctx.globalAlpha = (0.12 + 0.4 * m.d) * (0.6 + 0.4 * Math.sin(t * 1.2 + m.f * 3)) * (1 - 0.5 * abre);
+      ctx.drawImage(blanco, sx - tam / 2, sy - tam / 2, tam, tam);
+    }
+
     ctx.globalAlpha = 1;
     requestAnimationFrame(dibujar);
   }
@@ -210,6 +284,3 @@
   ajustar();
   requestAnimationFrame((ms) => { ultimo = ms / 1000; dibujar(ms); });
 })();
-
-
-
