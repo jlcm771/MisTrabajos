@@ -79,7 +79,7 @@ button:focus-visible { outline: 2px solid rgb(var(--brillo)); outline-offset: 5p
   position: absolute;
   z-index: 2;
   left: 50%;
-  top: 56%;
+  top: 56%; /* valor inicial; script.js lo ajusta bajo el título */
   width: 0;
   height: 0;
 }
