@@ -38,20 +38,30 @@ let puntero = null;        // posición del mouse respecto al centro de la rulet
 let ultimo = performance.now();
 const hover = items.map(() => 0); // 0..1 por imagen, suaviza el crecimiento
 
-let W, H, R, tam, tamDisp, grande, dx, dyArriba, dyAbajo;
+let W, H, R, cy, tam, tamDisp, grande, dx, dyArriba, dyAbajo;
 let sobreAnterior = -1;
 
 function medir() {
   W = stage.clientWidth;
   H = stage.clientHeight;
-  R = Math.min(W * 0.36, H * 0.30);               // radio de la ruleta
+
+  // La ruleta usa solo el espacio libre debajo del título, así nunca se encima
+  const titulo = stage.querySelector(".title");
+  const arriba = titulo.offsetTop + titulo.offsetHeight + 24; // aire bajo el título
+  const abajo = H - 24;                                       // aire al borde inferior
+  const libre = Math.max(abajo - arriba, 200);
+
+  R = Math.min(W * 0.36, libre / 2.5);            // radio de la ruleta
   tam = Math.max(64, Math.min(R * 0.5, 170));     // tamaño de cada imagen
+  if (2 * R + tam > libre) R = Math.max(60, (libre - tam) / 2);
+  cy = arriba + libre / 2;                        // centro vertical de la ruleta
+  wheel.style.top = cy + "px";
+
   tamDisp = tam * 0.6;                            // tamaño al dispersarse
   grande = Math.min(W * 0.88, H * 0.62, 680);     // tamaño al expandirse
   dx = W / 2 - tamDisp / 2 - 12;                  // hasta dónde se dispersan
-  dyArriba = H * 0.56 - tamDisp / 2 - 12;          // la ruleta está al 56% de la altura
-  dyAbajo = H * 0.44 - tamDisp / 2 - 12;
-
+  dyArriba = cy - tamDisp / 2 - 12;
+  dyAbajo = H - cy - tamDisp / 2 - 12;
 }
 
 /* ---------- Utilidades ---------- */
@@ -190,6 +200,7 @@ stage.addEventListener("pointermove", (e) => {
 });
 stage.addEventListener("pointerleave", () => (puntero = null));
 window.addEventListener("resize", medir);
+if (document.fonts) document.fonts.ready.then(medir);
 
 /* ---------- Inicio ---------- */
 medir();
