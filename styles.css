@@ -1,0 +1,216 @@
+:root {
+  --texto: #e6e6e6;
+  --suave: #8c8c8c;
+  --brillo: 200, 200, 200; /* gris claro, para resplandores e hilos */
+  --curva: cubic-bezier(.22, .8, .24, 1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; }
+
+body {
+  font-family: "Exo 2", system-ui, sans-serif;
+  background: #030303;
+  color: var(--texto);
+  overflow: hidden;
+}
+
+button { font: inherit; border: 0; background: none; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 2px solid rgb(var(--brillo)); outline-offset: 5px; border-radius: 16px; }
+
+#fondo {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+/* ---------- ESCENARIO ---------- */
+.stage {
+  position: relative;
+  z-index: 1;
+  height: 100svh;
+  width: 100%;
+  overflow: hidden;
+  --abre: 0; /* 0 = ruleta cerrada, 1 = proyecto abierto (lo mueve script.js) */
+}
+.stage.is-open { cursor: zoom-out; }
+
+/* ---------- TÍTULO (centrado, arriba) ---------- */
+.title {
+  position: absolute;
+  z-index: 1;
+  top: clamp(1rem, 3.5vh, 2.5rem);
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-weight: 200;
+  font-size: clamp(2.4rem, 6.4vw, 5rem);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  text-shadow: 0 0 30px rgba(var(--brillo), 0.35);
+  pointer-events: none;
+  opacity: calc(1 - var(--abre) * 1.4);
+  transform: scale(calc(1 - var(--abre) * 0.06));
+}
+.title__name,
+.title__role {
+  display: block;
+  animation: entrada 1.6s var(--curva) both;
+}
+.title__role {
+  margin-top: 0.3em;
+  color: var(--suave);
+  font-weight: 300;
+  font-size: 0.4em;
+  letter-spacing: 0.3em;
+  animation-delay: 0.3s;
+}
+
+@keyframes entrada {
+  from { opacity: 0; transform: translateY(14px); filter: blur(10px); }
+  to   { opacity: 1; transform: none; filter: blur(0); }
+}
+
+/* ---------- RULETA ---------- */
+.wheel {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 56%;
+  width: 0;
+  height: 0;
+}
+
+/* Hilos que amarran las imágenes al centro */
+.hilos {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+.hilo {
+  stroke: rgba(var(--brillo), 0.75);
+  stroke-width: 1;
+  stroke-linecap: round;
+  opacity: 0;
+}
+.hilo--halo {
+  stroke: rgba(var(--brillo), 0.16);
+  stroke-width: 6;
+}
+
+/* Tamaño y posición los controla script.js, cuadro a cuadro */
+.item {
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform;
+}
+
+.item__img {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 3px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 0 18px rgba(var(--brillo), 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  transition: box-shadow 0.5s ease, border-color 0.5s ease;
+}
+.item__img img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 9px;
+}
+.item__img::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(125deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0) 38%);
+  pointer-events: none;
+}
+
+.item.is-hover { z-index: 5; }
+.item.is-hover .item__img {
+  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow:
+    0 0 34px rgba(var(--brillo), 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+/* Texto de reemplazo cuando todavía no hay imagen */
+.item__label {
+  position: absolute;
+  inset: 3px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border-radius: 9px;
+  background: linear-gradient(160deg, rgba(95, 95, 95, 0.5), rgba(18, 18, 18, 0.85));
+  font-weight: 300;
+  font-size: 0.95rem;
+  text-align: center;
+}
+.item.sin-imagen .item__label { display: flex; }
+
+/* ---------- ABIERTO ---------- */
+.item.is-selected { z-index: 10; cursor: default; }
+.stage.is-open .item:not(.is-selected) { pointer-events: none; }
+
+.caption {
+  position: absolute;
+  z-index: 11;
+  left: 0;
+  right: 0;
+  bottom: 1.4rem;
+  text-align: center;
+  font-weight: 300;
+  font-size: 1.25rem;
+  letter-spacing: 0.06em;
+  text-shadow: 0 0 16px rgba(var(--brillo), 0.5);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.6s ease, transform 0.6s var(--curva);
+  pointer-events: none;
+}
+.stage.is-open .caption { opacity: 1; transform: none; transition-delay: 0.35s; }
+
+/* ---------- BOTÓN DE SONIDO ---------- */
+.sonido {
+  position: fixed;
+  z-index: 12;
+  right: 1rem;
+  bottom: 1rem;
+  width: 2.6rem;
+  height: 2.6rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 18px rgba(var(--brillo), 0.16);
+  color: var(--texto);
+  transition: box-shadow 0.4s ease, border-color 0.4s ease, color 0.4s ease;
+}
+.sonido:hover { border-color: rgba(255, 255, 255, 0.6); box-shadow: 0 0 28px rgba(var(--brillo), 0.45); }
+.sonido svg { width: 1.2rem; height: 1.2rem; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.sonido .tacha { display: none; }
+.sonido[aria-pressed="false"] { color: var(--suave); }
+.sonido[aria-pressed="false"] .ondas { display: none; }
+.sonido[aria-pressed="false"] .tacha { display: inline; }
+
+@media (prefers-reduced-motion: reduce) {
+  .title__name, .title__role { animation: none; }
+}

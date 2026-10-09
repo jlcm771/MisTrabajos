@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tu Nombre — Portafolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@200;300;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <canvas id="fondo" aria-hidden="true"></canvas>
+
+  <main class="stage" id="stage">
+    <h1 class="title">
+      <span class="title__name">Tu Nombre</span>
+      <span class="title__role">Portafolio</span>
+    </h1>
+
+    <!-- Para cada proyecto: cambia data-title, aria-label, src y alt.
+         Puedes añadir o quitar botones: la ruleta se ajusta sola. -->
+    <div class="wheel" id="wheel">
+      <button class="item" data-title="Proyecto 1" aria-label="Abrir Proyecto 1">
+        <span class="item__img"><img src="img/proyecto-1.jpg" alt="Proyecto 1"><span class="item__label">Proyecto 1</span></span>
+      </button>
+      <button class="item" data-title="Proyecto 2" aria-label="Abrir Proyecto 2">
+        <span class="item__img"><img src="img/proyecto-2.jpg" alt="Proyecto 2"><span class="item__label">Proyecto 2</span></span>
+      </button>
+      <button class="item" data-title="Proyecto 3" aria-label="Abrir Proyecto 3">
+        <span class="item__img"><img src="img/proyecto-3.jpg" alt="Proyecto 3"><span class="item__label">Proyecto 3</span></span>
+      </button>
+      <button class="item" data-title="Proyecto 4" aria-label="Abrir Proyecto 4">
+        <span class="item__img"><img src="img/proyecto-4.jpg" alt="Proyecto 4"><span class="item__label">Proyecto 4</span></span>
+      </button>
+      <button class="item" data-title="Proyecto 5" aria-label="Abrir Proyecto 5">
+        <span class="item__img"><img src="img/proyecto-5.jpg" alt="Proyecto 5"><span class="item__label">Proyecto 5</span></span>
+      </button>
+      <button class="item" data-title="Proyecto 6" aria-label="Abrir Proyecto 6">
+        <span class="item__img"><img src="img/proyecto-6.jpg" alt="Proyecto 6"><span class="item__label">Proyecto 6</span></span>
+      </button>
+    </div>
+
+    <p class="caption" id="caption" aria-live="polite"></p>
+  </main>
+
+  <button class="sonido" id="sonido" aria-label="Activar o silenciar el sonido" aria-pressed="true" title="Sonido">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 9v6h4l5 4V5L8 9H4z"/>
+      <path class="ondas" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/>
+      <path class="tacha" d="M17 9l5 6M22 9l-5 6"/>
+    </svg>
+  </button>
+
+  <script src="fondo.js"></script>
+  <script src="sonido.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
