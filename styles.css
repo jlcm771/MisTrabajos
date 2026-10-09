@@ -11,12 +11,7 @@ html, body { height: 100%; }
 
 body {
   font-family: "Exo 2", system-ui, sans-serif;
-  background-color: #030303;
-  background-image:
-    radial-gradient(ellipse at center, rgba(255, 255, 255, 0.06), transparent 55%),
-    linear-gradient(180deg, #000000 0%, #0a0a0a 60%, #1a1a1a 100%);
-  background-size: 100% 100%;
-  background-repeat: no-repeat;
+  background: #030303;
   color: var(--texto);
   overflow: hidden;
 }
@@ -27,9 +22,8 @@ button:focus-visible { outline: 2px solid rgb(var(--brillo)); outline-offset: 5p
 #fondo {
   position: fixed;
   inset: 0;
-  width: 100vw;
-  height: 100vh;
-  height: 100dvh;
+  width: 100%;
+  height: 100%;
   z-index: 0;
 }
 
@@ -164,7 +158,7 @@ button:focus-visible { outline: 2px solid rgb(var(--brillo)); outline-offset: 5p
   justify-content: center;
   padding: 0.5rem;
   border-radius: 9px;
-  background: linear-gradient(160deg, rgba(95, 95, 95, 0.5), rgba(18, 18, 18, 0.85));
+  background: linear-gradient(160deg, #4a4a4a, #141414);
   font-weight: 300;
   font-size: 0.95rem;
   text-align: center;
