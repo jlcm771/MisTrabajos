@@ -11,7 +11,7 @@
   const T_FORMA = reducir ? 9 : 5;       // segundos que mantiene cada forma
   const T_CAMBIO = reducir ? 3.5 : 2.2;  // segundos que tarda en transformarse
   const GIRO = reducir ? 0.08 : 0.22;    // velocidad de giro
-  const ABERRACION = 0.016;              // separación de colores en el borde (0 = sin color)
+  const ABERRACION = 0.05;              // separación de colores en el borde (0 = sin color)
   const RETARDO = 0.4;                   // qué tan escalonado es el cambio de forma
   const N_ORBITA = [70, 40];             // puntos que orbitan: [pantalla grande, celular]
   const N_POLVO = [170, 90];             // polvo de luz: [pantalla grande, celular]
@@ -53,24 +53,6 @@
   // Puntos destacados: centro blanco, resplandor azul suave y destello en cruz (+)
   const orbBlanco = sprite(235, 240, 255);
   const orbHalo = sprite(70, 110, 255);
-  const orbCruz = (() => {
-    const c = document.createElement("canvas");
-    c.width = c.height = 64;
-    const x = c.getContext("2d");
-    let g = x.createLinearGradient(0, 0, 64, 0);
-    g.addColorStop(0, "rgba(255,255,255,0)");
-    g.addColorStop(0.5, "rgba(255,255,255,1)");
-    g.addColorStop(1, "rgba(255,255,255,0)");
-    x.fillStyle = g;
-    x.fillRect(0, 31, 64, 2);
-    g = x.createLinearGradient(0, 0, 0, 64);
-    g.addColorStop(0, "rgba(255,255,255,0)");
-    g.addColorStop(0.5, "rgba(255,255,255,1)");
-    g.addColorStop(1, "rgba(255,255,255,0)");
-    x.fillStyle = g;
-    x.fillRect(31, 0, 2, 64);
-    return c;
-  })();
 
   /* ---------- Las formas (posiciones de cada punto, radio 1) ---------- */
   function crearFormas(n) {
