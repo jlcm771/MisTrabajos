@@ -11,7 +11,7 @@
   const T_FORMA = reducir ? 9 : 5;       // segundos que mantiene cada forma
   const T_CAMBIO = reducir ? 3.5 : 2.2;  // segundos que tarda en transformarse
   const GIRO = reducir ? 0.08 : 0.22;    // velocidad de giro
-  const ABERRACION = 0.1;              // separación de colores en el borde (0 = sin color)
+  const ABERRACION = 0.02;              // separación de colores en el borde (0 = sin color)
   const RETARDO = 0.4;                   // qué tan escalonado es el cambio de forma
   const N_ORBITA = [70, 40];             // puntos que orbitan: [pantalla grande, celular]
   const N_POLVO = [170, 90];             // polvo de luz: [pantalla grande, celular]
