@@ -1,5 +1,5 @@
 /* Fondo: negro puro con una esfera de partículas que cambia de forma
-   (esfera → anillos → círculo → reloj) y deja un borde de color en los puntos.
+   (esfera → anillos → reloj) y deja un borde de color en los puntos.
    Alrededor hay puntos que orbitan y polvo de luz que flota por toda la pantalla.
    Se coloca sola en el centro de la ruleta: script.js le pasa la posición. */
 (() => {
@@ -12,16 +12,18 @@
   const T_CAMBIO = reducir ? 3.5 : 2.2;  // segundos que tarda en transformarse
   const GIRO = reducir ? 0.08 : 0.22;    // velocidad de giro
   const ABERRACION = 0.016;              // separación de colores en el borde (0 = sin color)
+  const RETORNO = 1.5;                   // qué tan rápido vuelven los puntos a su lugar tras pasar el cursor (más bajo = tardan más)
   const RETARDO = 0.4;                   // qué tan escalonado es el cambio de forma
   const N_ORBITA = [70, 40];             // puntos que orbitan: [pantalla grande, celular]
   const N_POLVO = [170, 90];             // polvo de luz: [pantalla grande, celular]
-  const BLANCOS = 0.7;                   // parte de los puntos que orbitan que son blancos (el resto son azules)
+  const BLANCOS = 0.6;                   // parte de los puntos que orbitan que son blancos (el resto son azules)
 
   let W, H, dpr, N;
   let cx = 0, cy = 0, Rs = 100;
   let puntero = null;
   let formas = [], retardo = null;
   let orbitas = [], polvo = [];
+  let desX = null, desY = null; // cuánto está empujado cada punto por el cursor
   let paraX = 0, paraY = 0; // desplazamiento suave según el mouse
   let actual = 0, siguiente = 1, cambiando = false, fase = 0;
   let rotY = 0, ultimo = 0, iniciado = false;
@@ -55,7 +57,7 @@
   function crearFormas(n) {
     const ORO = 2.399963; // ángulo áureo: reparte los puntos de forma pareja
     const nueva = () => new Float32Array(n * 3);
-    const esfera = nueva(), anillos = nueva(), circulo = nueva(), reloj = nueva();
+    const esfera = nueva(), anillos = nueva(), reloj = nueva();
 
     for (let i = 0; i < n; i++) {
       const y = 1 - (2 * (i + 0.5)) / n;
@@ -86,16 +88,7 @@
       }
     }
 
-    // Un círculo grande con uno pequeño adentro
-    const fuera = Math.floor(n * 0.8);
-    for (let i = 0; i < n; i++) {
-      const dentro = i >= fuera;
-      const a = dentro ? (2 * Math.PI * (i - fuera)) / (n - fuera) : (2 * Math.PI * i) / fuera;
-      const r = dentro ? 0.22 : 1;
-      circulo.set([r * Math.cos(a), r * Math.sin(a), 0], i * 3);
-    }
-
-    return [esfera, anillos, circulo, reloj];
+    return [esfera, anillos, reloj];
   }
 
   function ajustar() {
@@ -108,6 +101,8 @@
       N = n;
       formas = crearFormas(N);
       retardo = Float32Array.from({ length: N }, () => Math.random() * RETARDO);
+      desX = new Float32Array(N);
+      desY = new Float32Array(N);
 
       // Puntos que giran alrededor de la esfera, cada uno en su propia órbita inclinada
       orbitas = Array.from({ length: N_ORBITA[grande ? 0 : 1] }, () => ({
@@ -185,6 +180,8 @@
     const A = formas[actual];
     const B = formas[siguiente];
     const radio = 150 * dpr;
+    const kEmpuje = 1 - Math.exp(-dt * 10);      // se apartan rápido
+    const kRetorno = 1 - Math.exp(-dt * RETORNO); // vuelven despacio
 
     for (let i = 0; i < N; i++) {
       const i3 = i * 3;
@@ -205,21 +202,28 @@
 
       const prof = (z2 + 1) / 2;       // 0 = lejos, 1 = cerca
       const s = 4 / (4 - z2);          // perspectiva
-      let sx = cx + x1 * Rs * s;
-      let sy = cy + y2 * Rs * s;
+      const sx0 = cx + x1 * Rs * s;
+      const sy0 = cy + y2 * Rs * s;
 
-      // El puntero empuja las partículas cercanas
+      // El puntero empuja las partículas cercanas; al alejarse, vuelven despacio a su forma
+      let objX = 0, objY = 0;
       if (puntero) {
-        const dx = sx - puntero.x;
-        const dy = sy - puntero.y;
+        const dx = sx0 - puntero.x;
+        const dy = sy0 - puntero.y;
         const d2 = dx * dx + dy * dy;
         if (d2 < radio * radio && d2 > 1) {
           const d = Math.sqrt(d2);
           const f = Math.pow(1 - d / radio, 2) * 45 * dpr;
-          sx += (dx / d) * f;
-          sy += (dy / d) * f;
+          objX = (dx / d) * f;
+          objY = (dy / d) * f;
         }
       }
+      const empujando = Math.abs(objX) + Math.abs(objY) > Math.abs(desX[i]) + Math.abs(desY[i]);
+      const kk = empujando ? kEmpuje : kRetorno;
+      desX[i] += (objX - desX[i]) * kk;
+      desY[i] += (objY - desY[i]) * kk;
+      const sx = sx0 + desX[i];
+      const sy = sy0 + desY[i];
 
       const tam = (1.5 + 1.6 * prof) * dpr * (0.92 + 0.08 * Math.sin(t * 2 + i)) * 3.4;
       ctx.globalAlpha = (0.3 + 0.7 * prof) * (1 - 0.65 * abre);
