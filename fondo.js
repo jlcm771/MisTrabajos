@@ -15,6 +15,7 @@
   const RETARDO = 0.4;                   // qué tan escalonado es el cambio de forma
   const N_ORBITA = [70, 40];             // puntos que orbitan: [pantalla grande, celular]
   const N_POLVO = [170, 90];             // polvo de luz: [pantalla grande, celular]
+  const DESTACADOS = 0.18;               // parte de los puntos que orbitan que son blancos con destello (0 = ninguno)
 
   let W, H, dpr, N;
   let cx = 0, cy = 0, Rs = 100;
@@ -44,10 +45,32 @@
   const azul = sprite(70, 110, 255);
   const blanco = sprite(70, 110, 220); // polvo de luz de fondo
 
-  // Puntos que orbitan: azul muy muy oscuro
-  const orbBorde1 = sprite(6, 12, 55);   // borde que se aleja del centro
-  const orbBorde2 = sprite(4, 8, 40);    // borde que mira al centro
-  const orbCentro = sprite(12, 28, 100); // centro del punto
+  // Puntos que orbitan: azul casi negro
+  const orbBorde1 = sprite(3, 6, 30);    // borde que se aleja del centro
+  const orbBorde2 = sprite(2, 4, 22);    // borde que mira al centro
+  const orbCentro = sprite(6, 14, 60);   // centro del punto
+
+  // Puntos destacados: centro blanco, resplandor azul suave y destello en cruz (+)
+  const orbBlanco = sprite(235, 240, 255);
+  const orbHalo = sprite(70, 110, 255);
+  const orbCruz = (() => {
+    const c = document.createElement("canvas");
+    c.width = c.height = 64;
+    const x = c.getContext("2d");
+    let g = x.createLinearGradient(0, 0, 64, 0);
+    g.addColorStop(0, "rgba(255,255,255,0)");
+    g.addColorStop(0.5, "rgba(255,255,255,1)");
+    g.addColorStop(1, "rgba(255,255,255,0)");
+    x.fillStyle = g;
+    x.fillRect(0, 31, 64, 2);
+    g = x.createLinearGradient(0, 0, 0, 64);
+    g.addColorStop(0, "rgba(255,255,255,0)");
+    g.addColorStop(0.5, "rgba(255,255,255,1)");
+    g.addColorStop(1, "rgba(255,255,255,0)");
+    x.fillStyle = g;
+    x.fillRect(31, 0, 2, 64);
+    return c;
+  })();
 
   /* ---------- Las formas (posiciones de cada punto, radio 1) ---------- */
   function crearFormas(n) {
@@ -115,6 +138,7 @@
         fase: Math.random() * Math.PI * 2,
         vel: (0.12 + Math.random() * 0.28) * (Math.random() < 0.5 ? -1 : 1),
         tam: 2 + Math.random() * 3.5,
+        esp: Math.random() < DESTACADOS,
       }));
 
       // Polvo de luz repartido por toda la pantalla, con profundidad
@@ -256,11 +280,23 @@
       const oy = ((sy - cy) / dist) * mag;
       const mitad = tam / 2;
       const brillo = (0.25 + 0.6 * prof) * (1 - 0.5 * abre);
-      ctx.globalAlpha = brillo * 0.6;
-      ctx.drawImage(orbBorde1, sx + ox - mitad, sy + oy - mitad, tam, tam);
-      ctx.drawImage(orbBorde2, sx - ox - mitad, sy - oy - mitad, tam, tam);
-      ctx.globalAlpha = brillo;
-      ctx.drawImage(orbCentro, sx - mitad, sy - mitad, tam, tam);
+      if (o.esp) {
+        const pulso = 0.55 + 0.45 * Math.sin(t * 2.2 + o.fase * 3); // late suavemente
+        const halo = tam * 2.4;
+        const cruz = tam * 3;
+        ctx.globalAlpha = brillo * 0.3 * pulso;
+        ctx.drawImage(orbHalo, sx - halo / 2, sy - halo / 2, halo, halo);
+        ctx.globalAlpha = brillo * pulso;
+        ctx.drawImage(orbCruz, sx - cruz / 2, sy - cruz / 2, cruz, cruz);
+        ctx.globalAlpha = brillo;
+        ctx.drawImage(orbBlanco, sx - mitad, sy - mitad, tam, tam);
+      } else {
+        ctx.globalAlpha = brillo * 0.6;
+        ctx.drawImage(orbBorde1, sx + ox - mitad, sy + oy - mitad, tam, tam);
+        ctx.drawImage(orbBorde2, sx - ox - mitad, sy - oy - mitad, tam, tam);
+        ctx.globalAlpha = brillo;
+        ctx.drawImage(orbCentro, sx - mitad, sy - mitad, tam, tam);
+      }
     }
 
     // Polvo de luz: sube despacio y se mueve un poco con el mouse
