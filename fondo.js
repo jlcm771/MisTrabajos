@@ -15,7 +15,7 @@
   const RETARDO = 0.4;                   // qué tan escalonado es el cambio de forma
   const N_ORBITA = [70, 40];             // puntos que orbitan: [pantalla grande, celular]
   const N_POLVO = [170, 90];             // polvo de luz: [pantalla grande, celular]
-  const BLANCOS = 0.6;                   // parte de los puntos que orbitan que son blancos (el resto son azules)
+  const BLANCOS = 0.7;                   // parte de los puntos que orbitan que son blancos (el resto son azules)
 
   let W, H, dpr, N;
   let cx = 0, cy = 0, Rs = 100;
