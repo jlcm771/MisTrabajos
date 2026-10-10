@@ -38,12 +38,10 @@
     x.fillRect(0, 0, 48, 48);
     return c;
   }
-   const rojo   = sprite(255, 70, 60);
-   const verde  = sprite(70, 255, 90);
-   const azul   = sprite(70, 110, 255);
-   const blanco = sprite(255, 255, 255);
-
-
+  const rojo = sprite(255, 70, 60);
+  const verde = sprite(70, 255, 90);
+  const azul = sprite(70, 110, 255);
+  const blanco = sprite(255, 255, 255);
 
   /* ---------- Las formas (posiciones de cada punto, radio 1) ---------- */
   function crearFormas(n) {
