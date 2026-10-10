@@ -15,7 +15,7 @@
   const RETARDO = 0.4;                   // qué tan escalonado es el cambio de forma
   const N_ORBITA = [70, 40];             // puntos que orbitan: [pantalla grande, celular]
   const N_POLVO = [170, 90];             // polvo de luz: [pantalla grande, celular]
-  const DESTACADOS = 0.18;               // parte de los puntos que orbitan que son blancos con destello (0 = ninguno)
+  const DESTACADOS = 0.50;               // parte de los puntos que orbitan que son blancos con destello (0 = ninguno)
 
   let W, H, dpr, N;
   let cx = 0, cy = 0, Rs = 100;
@@ -53,6 +53,25 @@
   // Puntos destacados: centro blanco, resplandor azul suave y destello en cruz (+)
   const orbBlanco = sprite(235, 240, 255);
   const orbHalo = sprite(70, 110, 255);
+  const orbCruz = (() => {
+    const c = document.createElement("canvas");
+    c.width = c.height = 64;
+    const x = c.getContext("2d");
+    let g = x.createLinearGradient(0, 0, 64, 0);
+    g.addColorStop(0, "rgba(255,255,255,0)");
+    g.addColorStop(0.5, "rgba(255,255,255,1)");
+    g.addColorStop(1, "rgba(255,255,255,0)");
+    x.fillStyle = g;
+    x.fillRect(0, 31, 64, 2);
+    g = x.createLinearGradient(0, 0, 0, 64);
+    g.addColorStop(0, "rgba(255,255,255,0)");
+    g.addColorStop(0.5, "rgba(255,255,255,1)");
+    g.addColorStop(1, "rgba(255,255,255,0)");
+    x.fillStyle = g;
+    x.fillRect(31, 0, 2, 64);
+    return c;
+  })();
+
 
   /* ---------- Las formas (posiciones de cada punto, radio 1) ---------- */
   function crearFormas(n) {
