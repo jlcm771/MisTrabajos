@@ -11,7 +11,7 @@
   const T_FORMA = reducir ? 9 : 5;       // segundos que mantiene cada forma
   const T_CAMBIO = reducir ? 3.5 : 2.2;  // segundos que tarda en transformarse
   const GIRO = reducir ? 0.08 : 0.22;    // velocidad de giro
-  const ABERRACION = 0.01;              // separación de colores en el borde (0 = sin color)
+  const ABERRACION = 0.016;              // separación de colores en el borde (0 = sin color)
   const RETARDO = 0.4;                   // qué tan escalonado es el cambio de forma
   const N_ORBITA = [70, 40];             // puntos que orbitan: [pantalla grande, celular]
   const N_POLVO = [170, 90];             // polvo de luz: [pantalla grande, celular]
@@ -38,10 +38,16 @@
     x.fillRect(0, 0, 48, 48);
     return c;
   }
+  // Esfera del centro: blanca (cada color es [rojo, verde, azul], de 0 a 255)
   const rojo = sprite(255, 70, 60);
   const verde = sprite(70, 255, 90);
   const azul = sprite(70, 110, 255);
-  const blanco = sprite(255, 255, 255);
+  const blanco = sprite(70, 110, 220); // polvo de luz de fondo
+
+  // Puntos que orbitan: azul muy muy oscuro
+  const orbBorde1 = sprite(6, 12, 55);   // borde que se aleja del centro
+  const orbBorde2 = sprite(4, 8, 40);    // borde que mira al centro
+  const orbCentro = sprite(12, 28, 100); // centro del punto
 
   /* ---------- Las formas (posiciones de cada punto, radio 1) ---------- */
   function crearFormas(n) {
@@ -163,11 +169,11 @@
     // Fondo negro con un resplandor muy tenue detrás de la esfera
     ctx.globalCompositeOperation = "source-over";
     ctx.globalAlpha = 1;
-    ctx.fillStyle = "#000";
+    ctx.fillStyle = "#01030a";
     ctx.fillRect(0, 0, W, H);
     const brillo = ctx.createRadialGradient(cx, cy, 0, cx, cy, Rs * 2.2);
-    brillo.addColorStop(0, "rgba(255, 255, 255, 0.07)");
-    brillo.addColorStop(1, "rgba(255, 255, 255, 0)");
+    brillo.addColorStop(0, "rgba(30, 70, 200, 0.12)");
+    brillo.addColorStop(1, "rgba(30, 70, 200, 0)");
     ctx.fillStyle = brillo;
     ctx.fillRect(0, 0, W, H);
 
@@ -243,7 +249,7 @@
       const sx = cx + x1 * Rs * s;
       const sy = cy + y2 * Rs * s;
       const tam = o.tam * dpr * (0.7 + 0.6 * prof) * 3.2;
-      // Punto blanco con un borde de color pequeño (máx. 3 px) para que no se vea colorido
+      // Punto con un borde de color pequeño (máx. 3 px)
       const dist = Math.hypot(sx - cx, sy - cy) || 1;
       const mag = Math.min(dist * ABERRACION * 1.5, 3 * dpr);
       const ox = ((sx - cx) / dist) * mag;
@@ -251,10 +257,10 @@
       const mitad = tam / 2;
       const brillo = (0.25 + 0.6 * prof) * (1 - 0.5 * abre);
       ctx.globalAlpha = brillo * 0.6;
-      ctx.drawImage(rojo, sx + ox - mitad, sy + oy - mitad, tam, tam);
-      ctx.drawImage(azul, sx - ox - mitad, sy - oy - mitad, tam, tam);
+      ctx.drawImage(orbBorde1, sx + ox - mitad, sy + oy - mitad, tam, tam);
+      ctx.drawImage(orbBorde2, sx - ox - mitad, sy - oy - mitad, tam, tam);
       ctx.globalAlpha = brillo;
-      ctx.drawImage(blanco, sx - mitad, sy - mitad, tam, tam);
+      ctx.drawImage(orbCentro, sx - mitad, sy - mitad, tam, tam);
     }
 
     // Polvo de luz: sube despacio y se mueve un poco con el mouse
