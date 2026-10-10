@@ -8,8 +8,8 @@
   const reducir = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   // ---- Ajustes que puedes cambiar ----
-  const T_FORMA = reducir ? 9 : 5;       // segundos que mantiene cada forma
-  const T_CAMBIO = reducir ? 3.5 : 2.2;  // segundos que tarda en transformarse
+  const T_FORMA = reducir ? 7 : 4;       // segundos que mantiene cada forma
+  const T_CAMBIO = reducir ? 3.2 : 2;  // segundos que tarda en transformarse
   const GIRO = reducir ? 0.08 : 0.22;    // velocidad de giro
   const ABERRACION = 0.016;              // separación de colores en el borde (0 = sin color)
   const RETORNO = 1.2;                   // qué tan rápido vuelven los puntos a su lugar tras pasar el cursor (más bajo = tardan más)
