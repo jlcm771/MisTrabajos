@@ -204,10 +204,23 @@ button:focus-visible { outline: 2px solid rgb(var(--brillo)); outline-offset: 5p
 .stage.is-open .caption a { pointer-events: auto; }
 .caption a:hover, .caption a:focus-visible { opacity: 1; }
 
-/* Para logos: se ven completos en la ruleta en lugar de recortarse (data-ajuste="contain") */
-.item[data-ajuste="contain"] .item__img img {
+/* Para logos: se ven completos en lugar de recortarse.
+   data-ajuste="contain" → solo se muestra completo
+   data-ajuste="logo"    → además se recorta el espacio vacío y llena toda la caja al abrirse */
+.item[data-ajuste="contain"] .item__img img,
+.item[data-ajuste="logo"] .item__img img {
   object-fit: contain;
   background: rgba(255, 255, 255, 0.04);
+}
+.item[data-ajuste="logo"] .item__img {
+  background: #0a0e18;               /* fondo liso: no se transparentan la esfera ni los hilos */
+}
+.item[data-ajuste="logo"] .item__img img {
+  padding: 8%;                       /* un poco de aire en la ruleta */
+  transition: padding 0.7s var(--curva);
+}
+.stage.is-open .item.is-selected[data-ajuste="logo"] .item__img img {
+  padding: 0;                        /* abierto: el logo llena toda la caja */
 }
 
 /* ---------- BOTÓN DE SONIDO ---------- */
