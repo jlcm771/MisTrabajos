@@ -71,7 +71,7 @@ function medir() {
 function cajaGrande(r) {
   const MARCO = 8;                              // borde + margen del marco de cristal
   const maxW = Math.min(W * 0.9, 1000) - MARCO;
-  const maxH = Math.min(H * 0.62, 700) - MARCO;
+  const maxH = Math.min(H * 0.58, 700) - MARCO;
   const ancho = Math.min(maxW, maxH * r);
   return [ancho + MARCO, ancho / r + MARCO];
 }
@@ -171,12 +171,42 @@ function cuadro(ahora) {
   requestAnimationFrame(cuadro);
 }
 
+/* ---------- Enlaces: proyectos que son páginas web ---------- */
+// Un proyecto con data-url="https://..." lleva a esa página al hacer click otra vez en la imagen abierta
+function urlDe(item) {
+  if (!item.dataset.url) return null;
+  try {
+    const u = new URL(item.dataset.url, location.href);
+    return u.protocol === "http:" || u.protocol === "https:" ? u.href : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function visitar(item) {
+  const url = urlDe(item);
+  if (url) window.open(url, "_blank", "noopener,noreferrer");
+}
+
+function ponerPie(item) {
+  caption.textContent = item.dataset.title;
+  const url = urlDe(item);
+  if (url) {
+    const a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    a.textContent = "Visitar sitio ↗";
+    caption.append(a);
+  }
+}
+
 /* ---------- Abrir y cerrar ---------- */
 function abrir(item) {
   if (abierto || p > 0) return;
   seleccionado = item;
   item.classList.add("is-selected");
-  caption.textContent = item.dataset.title;
+  ponerPie(item);
   stage.classList.add("is-open");
   abierto = true;
   window.Sonido?.abrir();
@@ -191,7 +221,15 @@ function cerrar() {
 
 /* ---------- Eventos ---------- */
 items.forEach((item, i) => {
-  item.addEventListener("click", () => abrir(item));
+  if (urlDe(item)) item.classList.add("tiene-enlace");
+
+  item.addEventListener("click", () => {
+    if (abierto && item === seleccionado) {
+      if (p > 0.95) visitar(item); // ya está abierta del todo: segundo click = ir a la página
+      return;
+    }
+    abrir(item);
+  });
 
   // Si la imagen aún no existe, se muestra el nombre del proyecto
   const img = item.querySelector("img");
@@ -212,7 +250,7 @@ items.forEach((item, i) => {
 
 // Click fuera de la imagen abierta → se minimiza
 stage.addEventListener("click", (e) => {
-  if (abierto && p > 0.35 && !e.target.closest(".item.is-selected")) cerrar();
+  if (abierto && p > 0.35 && !e.target.closest(".item.is-selected, .caption a")) cerrar();
 });
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") cerrar();
