@@ -171,6 +171,67 @@ function cuadro(ahora) {
   requestAnimationFrame(cuadro);
 }
 
+/* ---------- Logos: se recorta el espacio vacío para que llenen toda la caja ---------- */
+// Se usa con data-ajuste="logo". Funciona con logos de fondo transparente o de un color liso.
+function recortarLogo(img) {
+  if (img.dataset.recortado || !img.naturalWidth) return;
+  img.dataset.recortado = "1"; // para no repetirlo cuando se cambie la imagen
+  try {
+    const w = img.naturalWidth, h = img.naturalHeight;
+    const esc = Math.min(1, 400 / Math.max(w, h)); // se analiza en chico para que sea rápido
+    const aw = Math.max(1, Math.round(w * esc)), ah = Math.max(1, Math.round(h * esc));
+    const lienzo = document.createElement("canvas");
+    lienzo.width = aw;
+    lienzo.height = ah;
+    const cx = lienzo.getContext("2d", { willReadFrequently: true });
+    cx.drawImage(img, 0, 0, aw, ah);
+    const d = cx.getImageData(0, 0, aw, ah).data;
+    const px = (x, y) => { const k = (y * aw + x) * 4; return [d[k], d[k + 1], d[k + 2], d[k + 3]]; };
+    const dif = (a, b) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]);
+
+    // ¿El fondo es transparente o de un color liso?
+    const esq = [px(0, 0), px(aw - 1, 0), px(0, ah - 1), px(aw - 1, ah - 1)];
+    let fondo = null;
+    if (!esq.every((c) => c[3] < 20)) {
+      if (!esq.every((c) => c[3] > 235 && dif(c, esq[0]) < 40)) return; // fondo irregular: no se recorta
+      fondo = esq[0];
+    }
+    const hayLogo = (x, y) => {
+      const c = px(x, y);
+      return fondo ? c[3] > 20 && dif(c, fondo) > 60 : c[3] > 20;
+    };
+
+    let x0 = aw, y0 = ah, x1 = -1, y1 = -1;
+    for (let y = 0; y < ah; y++) {
+      for (let x = 0; x < aw; x++) {
+        if (hayLogo(x, y)) {
+          if (x < x0) x0 = x;
+          if (x > x1) x1 = x;
+          if (y < y0) y0 = y;
+          if (y > y1) y1 = y;
+        }
+      }
+    }
+    if (x1 < 0) return;
+
+    // Se recorta de la imagen original, con 1 px de margen
+    const k = 1 / esc;
+    const ox = Math.max(0, Math.floor(x0 * k) - 1);
+    const oy = Math.max(0, Math.floor(y0 * k) - 1);
+    const ow = Math.min(w - ox, Math.ceil((x1 - x0 + 1) * k) + 2);
+    const oh = Math.min(h - oy, Math.ceil((y1 - y0 + 1) * k) + 2);
+    if (ow >= w - 2 && oh >= h - 2) return; // ya estaba justo
+
+    const rec = document.createElement("canvas");
+    rec.width = ow;
+    rec.height = oh;
+    rec.getContext("2d").drawImage(img, ox, oy, ow, oh, 0, 0, ow, oh);
+    rec.toBlob((b) => { if (b) img.src = URL.createObjectURL(b); }, "image/png");
+  } catch (e) {
+    // Abriendo el archivo directo (file://) el navegador no deja leer la imagen: queda sin recortar
+  }
+}
+
 /* ---------- Enlaces: proyectos que son páginas web ---------- */
 // Un proyecto con data-url="https://..." lleva a esa página al hacer click otra vez en la imagen abierta
 function urlDe(item) {
@@ -185,7 +246,7 @@ function urlDe(item) {
 
 function visitar(item) {
   const url = urlDe(item);
-  if (url) window.open(url, "_blank", "noopener,noreferrer");
+  if (url) window.open(url, "_self", "noopener,noreferrer");
 }
 
 function ponerPie(item) {
@@ -242,9 +303,13 @@ items.forEach((item, i) => {
   };
   img.addEventListener("error", sinImagen);
   img.addEventListener("load", leerProporcion);
+  if (item.dataset.ajuste === "logo") img.addEventListener("load", () => recortarLogo(img));
   if (img.complete) {
     if (img.naturalWidth === 0) sinImagen();
-    else leerProporcion();
+    else {
+      leerProporcion();
+      if (item.dataset.ajuste === "logo") recortarLogo(img);
+    }
   }
 });
 
