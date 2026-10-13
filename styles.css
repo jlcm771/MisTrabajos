@@ -167,6 +167,7 @@ button:focus-visible { outline: 2px solid rgb(var(--brillo)); outline-offset: 5p
 
 /* ---------- ABIERTO ---------- */
 .item.is-selected { z-index: 10; cursor: default; }
+.item.is-selected.tiene-enlace { cursor: pointer; }
 .stage.is-open .item:not(.is-selected) { pointer-events: none; }
 
 .caption {
@@ -186,6 +187,28 @@ button:focus-visible { outline: 2px solid rgb(var(--brillo)); outline-offset: 5p
   pointer-events: none;
 }
 .stage.is-open .caption { opacity: 1; transform: none; transition-delay: 0.35s; }
+
+/* Enlace "Visitar sitio" bajo el nombre del proyecto */
+.caption a {
+  display: block;
+  margin-top: 0.4em;
+  color: var(--texto);
+  opacity: 0.65;
+  font-size: 0.6em;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  text-decoration: none;
+  pointer-events: none; /* solo se puede pulsar cuando el proyecto está abierto */
+  transition: opacity 0.3s ease;
+}
+.stage.is-open .caption a { pointer-events: auto; }
+.caption a:hover, .caption a:focus-visible { opacity: 1; }
+
+/* Para logos: se ven completos en la ruleta en lugar de recortarse (data-ajuste="contain") */
+.item[data-ajuste="contain"] .item__img img {
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.04);
+}
 
 /* ---------- BOTÓN DE SONIDO ---------- */
 .sonido {
