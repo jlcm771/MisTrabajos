@@ -246,7 +246,7 @@ function urlDe(item) {
 
 function visitar(item) {
   const url = urlDe(item);
-  if (url) window.open(url, "_self", "noopener,noreferrer");
+  if (url) window.open(url, "_blank", "noopener,noreferrer");
 }
 
 function ponerPie(item) {
